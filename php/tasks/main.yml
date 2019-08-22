@@ -1,0 +1,63 @@
+---
+# tasks file for php
+#
+- name: Install remi repo
+  yum:
+    name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    state: present
+
+- name: Enable remi repo
+  shell: yum-config-manager --enable remi-php70
+
+- name: install php pkg
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - php
+    - php-mcrypt
+    - php-cli
+    - php-gd
+    - php-curl
+    - php-mysql
+    - php-ldap
+    - php-zip
+    - php-fileinfo
+
+- name: wget for wordpress
+  get_url: 
+    url: https://wordpress.org/latest.zip
+    dest: /var/www/html/
+
+- name: unarchive wordpress.zip
+  unarchive:
+    src: /var/www/html/wordpress-5.2.2.zip
+    dest: /var/www/html/
+
+- name: copy wordpress files to html
+  synchronize: 
+    src: /var/www/html/wordpress/ 
+    dest: /var/www/html/
+
+- name: Set permissions
+  file:
+    path: /var/www/html
+    owner: apache
+    group: apache
+    state: directory
+    recurse: yes
+    mode: 0777
+
+- name: mv wp config 
+  command: mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+
+- name: enter database
+  replace:
+    path: /var/www/html/wp-config.php
+    regexp: "{{item.1}}"
+    replace: "{{item.2}}"
+  ignore_errors: yes
+  with_items:
+    - { 1: database_name_here, 2: 'lamp' }
+    - { 1: username_here, 2: 'lamp' } 
+    - { 1: password_here, 2: 'lamp' }

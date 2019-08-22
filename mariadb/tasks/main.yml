@@ -1,0 +1,29 @@
+---
+# tasks file for mariadb
+- name: install mariadb pkg
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items: 
+    - mariadb-server
+    - mysql
+    - MySQL-python
+  notify: service mariadb restart
+
+- name: service mariadb restart
+  service:
+    name: mariadb
+    state: started
+
+- name: create new database
+  mysql_db:
+    name: lamp
+    state: present
+
+- name : create database user
+  mysql_user:
+    name: lamp
+    password: 'lamp'
+#    encrypted: yes
+    priv: '*.*:ALL'
+    state: present
